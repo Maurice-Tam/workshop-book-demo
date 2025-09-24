@@ -21,23 +21,18 @@ def main():
     database = client.get_database_client("BookLibraryDB")
     container = database.get_container_client("Books")
 
-    # List of book files (original + new books)
+    # List of new blank book files (book020-book029)
     books = [
-        "../data/book001.json",
-        "../data/book002.json",
-        "../data/book003.json",
-        "../data/book004.json",
-        "../data/book005.json",
-        "../data/book006.json",
-        "../data/book007.json",
-        "../data/book008.json",
-        "../data/book009.json",
-        "../data/book010.json",
-        "../data/book011.json",
-        "../data/book012.json",
-        "../data/book013.json",
-        "../data/book014.json",
-        "../data/book015.json"
+        "../data/book020.json",
+        "../data/book021.json",
+        "../data/book022.json",
+        "../data/book023.json",
+        "../data/book024.json",
+        "../data/book025.json",
+        "../data/book026.json",
+        "../data/book027.json",
+        "../data/book028.json",
+        "../data/book029.json"
     ]
 
     successful_inserts = 0
