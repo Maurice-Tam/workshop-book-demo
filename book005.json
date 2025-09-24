@@ -1,0 +1,14 @@
+{
+  "id": "book005",
+  "title": "Dune",
+  "author": "Frank Herbert",
+  "category": "Fiction",
+  "isbn": "9780441172719",
+  "totalCount": 3,
+  "availableCount": 2,
+  "borrowedCount": 1,
+  "description": "A science fiction masterpiece about power, politics, and survival on the desert planet Arrakis. Epic tale of Paul Atreides and the spice melange.",
+  "publishedYear": 1965,
+  "addedDate": "2025-09-24T02:50:00Z",
+  "lastModified": "2025-09-24T02:50:00Z"
+}

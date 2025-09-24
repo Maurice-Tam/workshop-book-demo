@@ -1,0 +1,14 @@
+{
+  "id": "book003",
+  "title": "Atomic Habits",
+  "author": "James Clear",
+  "category": "Business",
+  "isbn": "9780735211292",
+  "totalCount": 4,
+  "availableCount": 3,
+  "borrowedCount": 1,
+  "description": "Proven strategies for building good habits and breaking bad ones. Small changes that make a big difference over time.",
+  "publishedYear": 2018,
+  "addedDate": "2025-09-24T02:50:00Z",
+  "lastModified": "2025-09-24T02:50:00Z"
+}

@@ -1,0 +1,14 @@
+{
+  "id": "book002",
+  "title": "The Lean Startup",
+  "author": "Eric Ries",
+  "category": "Business",
+  "isbn": "9780307887894",
+  "totalCount": 2,
+  "availableCount": 0,
+  "borrowedCount": 2,
+  "description": "How today's entrepreneurs use continuous innovation to create radically successful businesses. Build-Measure-Learn methodology for startups.",
+  "publishedYear": 2011,
+  "addedDate": "2025-09-24T02:50:00Z",
+  "lastModified": "2025-09-24T02:50:00Z"
+}
