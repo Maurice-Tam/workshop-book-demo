@@ -1,0 +1,14 @@
+{
+  "id": "book007",
+  "title": "1984",
+  "author": "George Orwell",
+  "category": "Fiction",
+  "isbn": "9780451524935",
+  "totalCount": 6,
+  "availableCount": 3,
+  "borrowedCount": 3,
+  "description": "Dystopian social science fiction novel about totalitarian surveillance, thought control, and the struggle for individual freedom in a oppressive society.",
+  "publishedYear": 1949,
+  "addedDate": "2025-09-24T03:30:00Z",
+  "lastModified": "2025-09-24T03:30:00Z"
+}

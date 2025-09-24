@@ -1,0 +1,14 @@
+{
+  "id": "book010",
+  "title": "A Brief History of Time",
+  "author": "Stephen Hawking",
+  "category": "Science",
+  "isbn": "9780553380163",
+  "totalCount": 4,
+  "availableCount": 4,
+  "borrowedCount": 0,
+  "description": "Popular science book explaining cosmology, black holes, and the nature of time and universe. Makes complex physics concepts accessible to general readers.",
+  "publishedYear": 1988,
+  "addedDate": "2025-09-24T03:30:00Z",
+  "lastModified": "2025-09-24T03:30:00Z"
+}

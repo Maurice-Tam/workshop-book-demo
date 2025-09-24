@@ -1,0 +1,14 @@
+{
+  "id": "book011",
+  "title": "The 7 Habits of Highly Effective People",
+  "author": "Stephen R. Covey",
+  "category": "Business",
+  "isbn": "9781982137274",
+  "totalCount": 5,
+  "availableCount": 3,
+  "borrowedCount": 2,
+  "description": "Personal development and leadership guide presenting seven foundational principles for effective living and management. Timeless wisdom for personal and professional growth.",
+  "publishedYear": 1989,
+  "addedDate": "2025-09-24T03:30:00Z",
+  "lastModified": "2025-09-24T03:30:00Z"
+}

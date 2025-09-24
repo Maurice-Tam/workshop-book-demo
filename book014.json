@@ -1,0 +1,14 @@
+{
+  "id": "book014",
+  "title": "Man's Search for Meaning",
+  "author": "Viktor E. Frankl",
+  "category": "Philosophy",
+  "isbn": "9780807014295",
+  "totalCount": 4,
+  "availableCount": 2,
+  "borrowedCount": 2,
+  "description": "Profound psychological memoir about finding purpose in suffering, based on the author's experiences in Nazi concentration camps. Explores logotherapy and the search for meaning.",
+  "publishedYear": 1946,
+  "addedDate": "2025-09-24T03:30:00Z",
+  "lastModified": "2025-09-24T03:30:00Z"
+}

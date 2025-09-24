@@ -1,0 +1,14 @@
+{
+  "id": "book013",
+  "title": "The Wealth of Nations",
+  "author": "Adam Smith",
+  "category": "Economics",
+  "isbn": "9780226763743",
+  "totalCount": 2,
+  "availableCount": 1,
+  "borrowedCount": 1,
+  "description": "Foundational work of modern economics exploring the nature and causes of national wealth. Introduces concepts of free markets, division of labor, and the invisible hand.",
+  "publishedYear": 1776,
+  "addedDate": "2025-09-24T03:30:00Z",
+  "lastModified": "2025-09-24T03:30:00Z"
+}
