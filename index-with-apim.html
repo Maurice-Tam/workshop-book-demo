@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>📚 Book Borrowing System - Azure APIM Gateway</title>
+    <style>
+        :root {
+            --primary-50: #eff6ff;
+            --primary-100: #dbeafe;
+            --primary-500: #3b82f6;
+            --primary-600: #2563eb;
+            --primary-700: #1d4ed8;
+            --success-500: #10b981;
+            --success-100: #d1fae5;
+            --warning-500: #f59e0b;
+            --warning-100: #fef3c7;
+            --error-500: #ef4444;
+            --error-100: #fee2e2;
+            --gray-50: #f9fafb;
+            --gray-100: #f3f4f6;
+            --gray-200: #e5e7eb;
+            --gray-300: #d1d5db;
+            --gray-400: #9ca3af;
+            --gray-500: #6b7280;
+            --gray-600: #4b5563;
+            --gray-700: #374151;
+            --gray-800: #1f2937;
+            --gray-900: #111827;
+            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+            --radius-md: 0.5rem;
+            --radius-lg: 0.75rem;
+            --radius-xl: 1rem;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 2rem;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+            color: white;
+        }
+
+        .header h1 {
+            font-size: 3rem;
+            margin-bottom: 0.5rem;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+
+        .gateway-info {
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+            border-radius: var(--radius-xl);
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            border: 1px solid rgba(255,255,255,0.2);
+            color: white;
+        }
+
+        .gateway-info h3 {
+            margin-bottom: 1rem;
+            color: #fff;
+        }
+
+        .gateway-url {
+            font-family: 'Courier New', monospace;
+            background: rgba(0,0,0,0.2);
+            padding: 0.75rem;
+            border-radius: var(--radius-md);
+            word-break: break-all;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .cards-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .card {
+            background: white;
+            border-radius: var(--radius-xl);
+            padding: 2rem;
+            box-shadow: var(--shadow-lg);
+            transition: transform 0.2s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-4px);
+        }
+
+        .card h2 {
+            color: var(--gray-800);
+            margin-bottom: 1.5rem;
+            font-size: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .input-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: var(--gray-700);
+            font-weight: 500;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid var(--gray-200);
+            border-radius: var(--radius-md);
+            font-size: 1rem;
+            transition: border-color 0.2s ease;
+        }
+
+        .input-group input:focus {
+            outline: none;
+            border-color: var(--primary-500);
+            box-shadow: 0 0 0 3px var(--primary-100);
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: var(--radius-md);
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary-500), var(--primary-600));
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+        }
+
+        .btn-secondary {
+            background-color: var(--gray-200);
+            color: var(--gray-700);
+        }
+
+        .btn-secondary:hover {
+            background-color: var(--gray-300);
+        }
+
+        .button-group {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .response-section {
+            margin-top: 2rem;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.3s ease;
+        }
+
+        .response-section.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .response-box {
+            background: var(--gray-50);
+            border: 2px solid var(--gray-200);
+            border-radius: var(--radius-lg);
+            padding: 1.5rem;
+            min-height: 120px;
+        }
+
+        .response-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+        }
+
+        .response-title {
+            color: var(--gray-700);
+            font-size: 0.875rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            font-weight: 600;
+        }
+
+        .status-indicator {
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+
+        .status-success {
+            background-color: var(--success-100);
+            color: var(--success-500);
+        }
+
+        .status-error {
+            background-color: var(--error-100);
+            color: var(--error-500);
+        }
+
+        .response-content {
+            color: var(--gray-900);
+            line-height: 1.6;
+            white-space: pre-wrap;
+        }
+
+        .loading {
+            display: none;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--primary-600);
+            font-style: italic;
+        }
+
+        .loading.active {
+            display: flex;
+        }
+
+        .spinner {
+            width: 16px;
+            height: 16px;
+            border: 2px solid var(--primary-200);
+            border-top: 2px solid var(--primary-600);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .metrics {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+
+        .metric {
+            background: white;
+            border-radius: var(--radius-lg);
+            padding: 1rem;
+            text-align: center;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .metric-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary-600);
+        }
+
+        .metric-label {
+            font-size: 0.875rem;
+            color: var(--gray-600);
+            margin-top: 0.25rem;
+        }
+
+        .info-section {
+            background: white;
+            border-radius: var(--radius-xl);
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: var(--shadow-lg);
+        }
+
+        .info-section h3 {
+            color: var(--gray-800);
+            margin-bottom: 1rem;
+        }
+
+        .info-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .info-list li {
+            padding: 0.75rem 0;
+            border-bottom: 1px solid var(--gray-100);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .info-list li:last-child {
+            border-bottom: none;
+        }
+
+        .info-label {
+            font-weight: 500;
+            color: var(--gray-700);
+        }
+
+        .info-value {
+            color: var(--gray-900);
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+        }
+
+        @media (max-width: 768px) {
+            .cards-container {
+                grid-template-columns: 1fr;
+            }
+
+            .header h1 {
+                font-size: 2rem;
+            }
+
+            body {
+                padding: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📚 Book Borrowing System</h1>
+            <p>Powered by Azure API Management Gateway</p>
+        </div>
+
+        <div class="gateway-info">
+            <h3>🌐 APIM Gateway Information</h3>
+            <div class="gateway-url">https://book-system-apim.azure-api.net</div>
+        </div>
+
+        <div class="cards-container">
+            <div class="card">
+                <h2>🚀 API Testing</h2>
+
+                <div class="input-group">
+                    <label for="userName">Your Name (optional):</label>
+                    <input type="text" id="userName" placeholder="Enter your name for a personalized greeting">
+                </div>
+
+                <div class="button-group">
+                    <button class="btn btn-primary" onclick="callApimGateway()">
+                        📡 Call APIM Gateway
+                    </button>
+                    <button class="btn btn-secondary" onclick="clearResponse()">
+                        🗑️ Clear
+                    </button>
+                </div>
+
+                <div class="loading" id="loading">
+                    <div class="spinner"></div>
+                    Calling API Gateway...
+                </div>
+
+                <div class="response-section" id="responseSection">
+                    <div class="response-box">
+                        <div class="response-header">
+                            <div class="response-title">Gateway Response</div>
+                            <div id="statusIndicator"></div>
+                        </div>
+                        <div class="response-content" id="responseContent"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>📊 Connection Metrics</h2>
+                <div class="metrics" id="metrics">
+                    <div class="metric">
+                        <div class="metric-value" id="totalCalls">0</div>
+                        <div class="metric-label">Total Calls</div>
+                    </div>
+                    <div class="metric">
+                        <div class="metric-value" id="successCalls">0</div>
+                        <div class="metric-label">Successful</div>
+                    </div>
+                    <div class="metric">
+                        <div class="metric-value" id="avgResponseTime">0ms</div>
+                        <div class="metric-label">Avg Response</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="info-section">
+            <h3>🏗️ Architecture Information</h3>
+            <ul class="info-list">
+                <li>
+                    <span class="info-label">API Management Gateway:</span>
+                    <span class="info-value">book-system-apim.azure-api.net</span>
+                </li>
+                <li>
+                    <span class="info-label">Backend Azure Function:</span>
+                    <span class="info-value">helloworldfunc09231920.azurewebsites.net</span>
+                </li>
+                <li>
+                    <span class="info-label">API Path:</span>
+                    <span class="info-value">/books/hello</span>
+                </li>
+                <li>
+                    <span class="info-label">Method:</span>
+                    <span class="info-value">GET</span>
+                </li>
+                <li>
+                    <span class="info-label">Authentication:</span>
+                    <span class="info-value">Function Key (handled by APIM)</span>
+                </li>
+                <li>
+                    <span class="info-label">CORS:</span>
+                    <span class="info-value">Enabled via APIM Policy</span>
+                </li>
+                <li>
+                    <span class="info-label">Rate Limiting:</span>
+                    <span class="info-value">100 calls per minute per IP</span>
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        // APIM Gateway Configuration
+        const APIM_GATEWAY_URL = 'https://book-system-apim.azure-api.net';
+        const API_ENDPOINT = '/books/hello';
+
+        // Metrics tracking
+        let metrics = {
+            totalCalls: 0,
+            successfulCalls: 0,
+            responseTimes: []
+        };
+
+        async function callApimGateway() {
+            const userName = document.getElementById('userName').value.trim();
+            const loading = document.getElementById('loading');
+            const responseSection = document.getElementById('responseSection');
+            const responseContent = document.getElementById('responseContent');
+            const statusIndicator = document.getElementById('statusIndicator');
+
+            // Show loading state
+            loading.classList.add('active');
+            responseSection.classList.remove('visible');
+
+            // Start timing
+            const startTime = performance.now();
+
+            try {
+                // Build URL with query parameter if name is provided
+                let url = APIM_GATEWAY_URL + API_ENDPOINT;
+                if (userName) {
+                    url += `?name=${encodeURIComponent(userName)}`;
+                }
+
+                console.log(`Calling APIM Gateway: ${url}`);
+
+                // Call the APIM Gateway
+                const response = await fetch(url, {
+                    method: 'GET',
+                    headers: {
+                        'Accept': 'text/plain, application/json',
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                const endTime = performance.now();
+                const responseTime = Math.round(endTime - startTime);
+
+                // Update metrics
+                updateMetrics(response.ok, responseTime);
+
+                const data = await response.text();
+
+                // Hide loading and show response
+                loading.classList.remove('active');
+                responseSection.classList.add('visible');
+
+                if (response.ok) {
+                    statusIndicator.innerHTML = '<span class="status-indicator status-success">✅ Success</span>';
+                    responseContent.textContent = data;
+                } else {
+                    statusIndicator.innerHTML = '<span class="status-indicator status-error">❌ Error</span>';
+                    responseContent.textContent = `Error ${response.status}: ${data}`;
+                }
+
+                console.log(`Response received in ${responseTime}ms:`, data);
+
+            } catch (error) {
+                const endTime = performance.now();
+                const responseTime = Math.round(endTime - startTime);
+
+                // Update metrics for failed call
+                updateMetrics(false, responseTime);
+
+                // Hide loading and show error
+                loading.classList.remove('active');
+                responseSection.classList.add('visible');
+                statusIndicator.innerHTML = '<span class="status-indicator status-error">❌ Network Error</span>';
+                responseContent.textContent = `Failed to connect to APIM Gateway: ${error.message}`;
+
+                console.error('APIM Gateway call failed:', error);
+            }
+        }
+
+        function updateMetrics(success, responseTime) {
+            metrics.totalCalls++;
+            metrics.responseTimes.push(responseTime);
+
+            if (success) {
+                metrics.successfulCalls++;
+            }
+
+            // Update UI
+            document.getElementById('totalCalls').textContent = metrics.totalCalls;
+            document.getElementById('successCalls').textContent = metrics.successfulCalls;
+
+            const avgResponseTime = metrics.responseTimes.reduce((a, b) => a + b, 0) / metrics.responseTimes.length;
+            document.getElementById('avgResponseTime').textContent = Math.round(avgResponseTime) + 'ms';
+        }
+
+        function clearResponse() {
+            document.getElementById('userName').value = '';
+            document.getElementById('responseSection').classList.remove('visible');
+            document.getElementById('loading').classList.remove('active');
+        }
+
+        // Test connection on page load
+        window.addEventListener('load', function() {
+            console.log('Page loaded - APIM Gateway integration ready');
+            console.log(`Gateway URL: ${APIM_GATEWAY_URL}${API_ENDPOINT}`);
+        });
+
+        // Add keyboard shortcut for testing
+        document.addEventListener('keydown', function(event) {
+            if (event.ctrlKey && event.key === 'Enter') {
+                event.preventDefault();
+                callApimGateway();
+            }
+        });
+    </script>
+</body>
+</html>
