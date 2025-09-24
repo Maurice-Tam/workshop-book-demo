@@ -62,11 +62,11 @@ def insert_document(document):
 def main():
     """Insert all book records"""
     books = [
-        "book001.json",
-        "book002.json",
-        "book003.json",
-        "book004.json",
-        "book005.json"
+        "../data/book001.json",
+        "../data/book002.json",
+        "../data/book003.json",
+        "../data/book004.json",
+        "../data/book005.json"
     ]
 
     successful_inserts = 0

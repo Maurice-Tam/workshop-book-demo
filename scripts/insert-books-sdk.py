@@ -23,21 +23,21 @@ def main():
 
     # List of book files (original + new books)
     books = [
-        "book001.json",
-        "book002.json",
-        "book003.json",
-        "book004.json",
-        "book005.json",
-        "book006.json",
-        "book007.json",
-        "book008.json",
-        "book009.json",
-        "book010.json",
-        "book011.json",
-        "book012.json",
-        "book013.json",
-        "book014.json",
-        "book015.json"
+        "../data/book001.json",
+        "../data/book002.json",
+        "../data/book003.json",
+        "../data/book004.json",
+        "../data/book005.json",
+        "../data/book006.json",
+        "../data/book007.json",
+        "../data/book008.json",
+        "../data/book009.json",
+        "../data/book010.json",
+        "../data/book011.json",
+        "../data/book012.json",
+        "../data/book013.json",
+        "../data/book014.json",
+        "../data/book015.json"
     ]
 
     successful_inserts = 0
