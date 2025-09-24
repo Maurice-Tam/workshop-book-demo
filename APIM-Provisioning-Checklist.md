@@ -140,7 +140,7 @@ echo "Function App: $FUNCTION_APP"
     --protocols https
   ```
 
-### ✅ Step 6: Create Hello World Operation
+### ✅ Step 6: Create Hello World Operations
 - [ ] Add GET /hello operation
   ```bash
   az apim api operation create \
@@ -152,46 +152,63 @@ echo "Function App: $FUNCTION_APP"
     --url-template "/hello" \
     --display-name "Hello World"
   ```
-
-### ✅ Step 7: Configure CORS Policy
-- [ ] Apply CORS policy to API
+- [ ] Add OPTIONS /hello operation for CORS preflight
   ```bash
-  az apim api policy create \
+  az apim api operation create \
     --resource-group $RESOURCE_GROUP \
     --service-name $APIM_NAME \
     --api-id "book-borrowing-api" \
-    --policy-format xml \
-    --policy-content '<policies>
-      <inbound>
-        <cors allow-credentials="false">
-          <allowed-origins>
-            <origin>https://jolly-hill-0d883e40f.2.azurestaticapps.net</origin>
-            <origin>http://localhost:3000</origin>
-          </allowed-origins>
-          <allowed-methods>
-            <method>GET</method>
-            <method>POST</method>
-            <method>OPTIONS</method>
-          </allowed-methods>
-          <allowed-headers>
-            <header>Content-Type</header>
-            <header>Authorization</header>
-          </allowed-headers>
-        </cors>
-        <rate-limit-by-key calls="100" renewal-period="60" counter-key="@(context.Request.IpAddress)" />
-        <set-backend-service backend-id="helloworldfunc-backend" />
-      </inbound>
-      <backend>
-        <base />
-      </backend>
-      <outbound>
-        <base />
-      </outbound>
-      <on-error>
-        <base />
-      </on-error>
-    </policies>'
+    --operation-id "hello-world-options" \
+    --method OPTIONS \
+    --url-template "/hello" \
+    --display-name "Hello World Options"
   ```
+
+### ✅ Step 7: Configure CORS Policy
+- [ ] Apply CORS policy via REST API (Azure CLI policy commands may not work)
+  ```bash
+  # Get access token
+  ACCESS_TOKEN=$(az account get-access-token --query "accessToken" --output tsv)
+
+  # Apply CORS policy via REST API
+  curl -X PUT "https://management.azure.com/subscriptions/$SUBSCRIPTION_ID/resourceGroups/$RESOURCE_GROUP/providers/Microsoft.ApiManagement/service/$APIM_NAME/apis/book-borrowing-api/policies/policy?api-version=2021-08-01" \
+    -H "Authorization: Bearer $ACCESS_TOKEN" \
+    -H "Content-Type: application/vnd.ms-azure-apim.policy.raw+xml" \
+    -d '<policies>
+    <inbound>
+      <cors allow-credentials="false">
+        <allowed-origins>
+          <origin>*</origin>
+        </allowed-origins>
+        <allowed-methods>
+          <method>GET</method>
+          <method>POST</method>
+          <method>OPTIONS</method>
+        </allowed-methods>
+        <allowed-headers>
+          <header>Content-Type</header>
+          <header>Authorization</header>
+          <header>Accept</header>
+        </allowed-headers>
+      </cors>
+      <set-backend-service base-url="https://$FUNCTION_APP.azurewebsites.net/api" />
+      <set-header name="x-functions-key" exists-action="override">
+        <value>$FUNCTION_KEY</value>
+      </set-header>
+    </inbound>
+    <backend>
+      <base />
+    </backend>
+    <outbound>
+      <base />
+    </outbound>
+    <on-error>
+      <base />
+    </on-error>
+  </policies>'
+  ```
+- [ ] **IMPORTANT**: Cannot mix wildcard origin (`*`) with specific origins
+- [ ] Verify CORS policy was applied successfully
 
 ---
 
@@ -221,13 +238,21 @@ echo "Function App: $FUNCTION_APP"
   ```
 
 ### ✅ CORS Validation
-- [ ] Test CORS headers from allowed origin
+- [ ] Test CORS preflight request (should return 200, not 404)
   ```bash
   curl -X OPTIONS "$GATEWAY_URL/books/hello" \
     -H "Origin: https://jolly-hill-0d883e40f.2.azurestaticapps.net" \
     -H "Access-Control-Request-Method: GET" \
     -v
-  # Should return CORS headers
+  # Expected: HTTP/1.1 200 OK with Access-Control-Allow-* headers
+  # If 404: OPTIONS operation missing, go back to Step 6
+  ```
+- [ ] Test actual GET request with Origin header
+  ```bash
+  curl -X GET "$GATEWAY_URL/books/hello?name=TestUser" \
+    -H "Origin: https://jolly-hill-0d883e40f.2.azurestaticapps.net" \
+    -v
+  # Expected: Access-Control-Allow-Origin: * header present
   ```
 
 ### ✅ Rate Limiting Test
@@ -317,11 +342,27 @@ echo "Function App: $FUNCTION_APP"
 
 ---
 
-## 🚨 Rollback Plan
+## 🚨 Troubleshooting Common Issues
 
-**If deployment fails or issues occur:**
+### ✅ CORS Issues (NetworkError when attempting to fetch resource)
+**If browser shows "TypeError: NetworkError when attempting to fetch resource":**
+
+- [ ] Check if OPTIONS operation exists
+  ```bash
+  az apim api operation list --resource-group dev-swa-rg --service-name book-system-apim --api-id "book-borrowing-api" --output table
+  # Should show both GET and OPTIONS operations
+  ```
+- [ ] Test CORS preflight manually
+  ```bash
+  curl -X OPTIONS "https://book-system-apim.azure-api.net/books/hello" -v
+  # Should return 200, not 404
+  ```
+- [ ] If CORS policy not working, reapply via REST API (see Step 7)
+- [ ] Verify wildcard origin (*) is used alone, not mixed with specific origins
 
 ### ✅ Emergency Rollback Steps
+**If deployment fails or issues occur:**
+
 - [ ] Remove APIM service
   ```bash
   az apim delete --resource-group $RESOURCE_GROUP --name $APIM_NAME --yes --no-wait

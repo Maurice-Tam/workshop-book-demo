@@ -146,8 +146,6 @@ Outbound IPs (APIM to Backend):
 ```xml
 <cors allow-credentials="false">
     <allowed-origins>
-        <origin>https://jolly-hill-0d883e40f.2.azurestaticapps.net</origin>
-        <origin>http://localhost:3000</origin>
         <origin>*</origin>
     </allowed-origins>
     <allowed-methods>
@@ -158,9 +156,12 @@ Outbound IPs (APIM to Backend):
     <allowed-headers>
         <header>Content-Type</header>
         <header>Authorization</header>
+        <header>Accept</header>
     </allowed-headers>
 </cors>
 ```
+
+**Note**: Cannot mix wildcard origin (`*`) with specific origins. Use either `*` for all origins or specify exact origins.
 
 ### Rate Limiting Policy
 ```xml
@@ -266,6 +267,54 @@ az apim api operation create \
   --method GET \
   --url-template "/hello" \
   --display-name "Hello World"
+
+# Create OPTIONS operation for CORS preflight
+az apim api operation create \
+  --resource-group $RESOURCE_GROUP \
+  --service-name $APIM_NAME \
+  --api-id "book-borrowing-api" \
+  --operation-id "hello-world-options" \
+  --method OPTIONS \
+  --url-template "/hello" \
+  --display-name "Hello World Options"
+
+# Apply CORS policy via REST API
+ACCESS_TOKEN=$(az account get-access-token --query "accessToken" --output tsv)
+curl -X PUT "https://management.azure.com/subscriptions/$SUBSCRIPTION_ID/resourceGroups/$RESOURCE_GROUP/providers/Microsoft.ApiManagement/service/$APIM_NAME/apis/book-borrowing-api/policies/policy?api-version=2021-08-01" \
+  -H "Authorization: Bearer $ACCESS_TOKEN" \
+  -H "Content-Type: application/vnd.ms-azure-apim.policy.raw+xml" \
+  -d '<policies>
+  <inbound>
+    <cors allow-credentials="false">
+      <allowed-origins>
+        <origin>*</origin>
+      </allowed-origins>
+      <allowed-methods>
+        <method>GET</method>
+        <method>POST</method>
+        <method>OPTIONS</method>
+      </allowed-methods>
+      <allowed-headers>
+        <header>Content-Type</header>
+        <header>Authorization</header>
+        <header>Accept</header>
+      </allowed-headers>
+    </cors>
+    <set-backend-service base-url="https://$FUNCTION_APP.azurewebsites.net/api" />
+    <set-header name="x-functions-key" exists-action="override">
+      <value>$FUNCTION_KEY</value>
+    </set-header>
+  </inbound>
+  <backend>
+    <base />
+  </backend>
+  <outbound>
+    <base />
+  </outbound>
+  <on-error>
+    <base />
+  </on-error>
+</policies>'
 ```
 
 ### ARM Template
@@ -343,10 +392,42 @@ graph TD
 ## 📞 Support and Troubleshooting
 
 ### Common Issues
+
+#### 1. CORS Errors (NetworkError when attempting to fetch resource)
+**Symptoms**:
+- Browser shows "TypeError: NetworkError when attempting to fetch resource"
+- 404 errors on OPTIONS requests
+- Missing CORS headers
+
+**Solutions**:
+```bash
+# 1. Create OPTIONS operation for CORS preflight
+az apim api operation create \
+  --resource-group dev-swa-rg \
+  --service-name book-system-apim \
+  --api-id "book-borrowing-api" \
+  --operation-id "hello-world-options" \
+  --method OPTIONS \
+  --url-template "/hello" \
+  --display-name "Hello World Options"
+
+# 2. Apply CORS policy (cannot mix * with specific origins)
+ACCESS_TOKEN=$(az account get-access-token --query "accessToken" --output tsv)
+curl -X PUT "https://management.azure.com/subscriptions/176a9b8c-ce4f-49c9-adc1-0b464552aa81/resourceGroups/dev-swa-rg/providers/Microsoft.ApiManagement/service/book-system-apim/apis/book-borrowing-api/policies/policy?api-version=2021-08-01" \
+  -H "Authorization: Bearer $ACCESS_TOKEN" \
+  -H "Content-Type: application/vnd.ms-azure-apim.policy.raw+xml" \
+  -d '<policies><inbound><cors allow-credentials="false"><allowed-origins><origin>*</origin></allowed-origins><allowed-methods><method>GET</method><method>POST</method><method>OPTIONS</method></allowed-methods><allowed-headers><header>Content-Type</header><header>Authorization</header><header>Accept</header></allowed-headers></cors><set-backend-service base-url="https://helloworldfunc09231920.azurewebsites.net/api" /><set-header name="x-functions-key" exists-action="override"><value>YOUR_FUNCTION_KEY</value></set-header></inbound><backend><base /></backend><outbound><base /></outbound><on-error><base /></on-error></policies>'
+
+# 3. Test CORS preflight
+curl -X OPTIONS "https://book-system-apim.azure-api.net/books/hello" \
+  -H "Origin: https://your-static-web-app.azurestaticapps.net" \
+  -H "Access-Control-Request-Method: GET" -v
+```
+
+#### 2. Other Common Issues
 1. **502 Bad Gateway**: Check Function App availability and keys
-2. **CORS Errors**: Verify CORS policy configuration
-3. **Rate Limiting**: Adjust rate limiting policies if needed
-4. **Authentication Failures**: Validate Function App keys
+2. **Rate Limiting**: Adjust rate limiting policies if needed
+3. **Authentication Failures**: Validate Function App keys
 
 ### Useful Commands
 ```bash
