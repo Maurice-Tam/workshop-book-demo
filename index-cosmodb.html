@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Book Library - CosmosDB Integration</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            color: white;
+        }
+
+        .header h1 {
+            font-size: 3rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            background: rgba(255,255,255,0.2);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.3);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .btn:hover {
+            background: rgba(255,255,255,0.3);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 15px;
+            padding: 20px;
+            text-align: center;
+            color: white;
+        }
+
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            opacity: 0.8;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .books-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+
+        .book-card {
+            background: rgba(255,255,255,0.95);
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            border: 1px solid rgba(255,255,255,0.3);
+        }
+
+        .book-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.3);
+        }
+
+        .book-title {
+            font-size: 1.4rem;
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 8px;
+            line-height: 1.3;
+        }
+
+        .book-author {
+            color: #7f8c8d;
+            font-size: 1.1rem;
+            margin-bottom: 12px;
+        }
+
+        .book-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .book-category {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .book-year {
+            color: #95a5a6;
+            font-weight: 600;
+        }
+
+        .book-description {
+            color: #555;
+            line-height: 1.5;
+            margin-bottom: 15px;
+            font-size: 0.95rem;
+        }
+
+        .book-stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .stat-item {
+            text-align: center;
+            padding: 8px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+
+        .stat-item .number {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+
+        .stat-item .label {
+            font-size: 0.7rem;
+            color: #7f8c8d;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .book-isbn {
+            color: #95a5a6;
+            font-size: 0.85rem;
+            text-align: center;
+            padding-top: 10px;
+            border-top: 1px solid #ecf0f1;
+        }
+
+        .loading {
+            text-align: center;
+            color: white;
+            font-size: 1.2rem;
+            padding: 50px;
+        }
+
+        .error {
+            background: rgba(231, 76, 60, 0.9);
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .success {
+            background: rgba(46, 204, 113, 0.9);
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .filter-controls {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .filter-btn {
+            background: rgba(255,255,255,0.2);
+            border: 1px solid rgba(255,255,255,0.3);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        .filter-btn.active {
+            background: rgba(255,255,255,0.4);
+            font-weight: bold;
+        }
+
+        .availability-high { border-left: 4px solid #27ae60; }
+        .availability-medium { border-left: 4px solid #f39c12; }
+        .availability-low { border-left: 4px solid #e74c3c; }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+
+            .books-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .controls {
+                flex-direction: column;
+                align-items: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📚 Book Library System</h1>
+            <p>Powered by Azure CosmosDB & APIM Gateway</p>
+        </div>
+
+        <div class="controls">
+            <button class="btn" id="loadBooksBtn">Load Books</button>
+            <button class="btn" id="refreshBtn">Refresh Data</button>
+            <button class="btn" id="testHelloBtn">Test Hello API</button>
+        </div>
+
+        <div id="messageArea"></div>
+
+        <div id="statsArea" class="stats-grid" style="display: none;">
+            <div class="stat-card">
+                <div class="stat-number" id="totalBooks">0</div>
+                <div class="stat-label">Total Books</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="totalAvailable">0</div>
+                <div class="stat-label">Available</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="totalBorrowed">0</div>
+                <div class="stat-label">Borrowed</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="totalCategories">0</div>
+                <div class="stat-label">Categories</div>
+            </div>
+        </div>
+
+        <div class="filter-controls" id="filterControls" style="display: none;">
+            <button class="filter-btn active" data-category="all">All Books</button>
+            <button class="filter-btn" data-category="Technology">Technology</button>
+            <button class="filter-btn" data-category="Business">Business</button>
+            <button class="filter-btn" data-category="Science">Science</button>
+            <button class="filter-btn" data-category="Fiction">Fiction</button>
+        </div>
+
+        <div id="booksArea" class="books-grid"></div>
+    </div>
+
+    <script>
+        const APIM_GATEWAY_URL = 'https://book-system-apim.azure-api.net/books';
+        const API_KEY = '6854c6a9b0ff4b449f50b06f3e3b8d5e';
+
+        let allBooks = [];
+        let currentFilter = 'all';
+
+        // DOM elements
+        const loadBooksBtn = document.getElementById('loadBooksBtn');
+        const refreshBtn = document.getElementById('refreshBtn');
+        const testHelloBtn = document.getElementById('testHelloBtn');
+        const messageArea = document.getElementById('messageArea');
+        const booksArea = document.getElementById('booksArea');
+        const statsArea = document.getElementById('statsArea');
+        const filterControls = document.getElementById('filterControls');
+
+        // Event listeners
+        loadBooksBtn.addEventListener('click', loadBooks);
+        refreshBtn.addEventListener('click', loadBooks);
+        testHelloBtn.addEventListener('click', testHelloAPI);
+
+        // Filter event listeners
+        document.addEventListener('click', (e) => {
+            if (e.target.classList.contains('filter-btn')) {
+                // Update active filter button
+                document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+                e.target.classList.add('active');
+
+                // Update current filter
+                currentFilter = e.target.dataset.category;
+                displayBooks();
+            }
+        });
+
+        function showMessage(message, type = 'success') {
+            messageArea.innerHTML = `<div class="${type}">${message}</div>`;
+            setTimeout(() => {
+                messageArea.innerHTML = '';
+            }, 5000);
+        }
+
+        function showLoading() {
+            booksArea.innerHTML = '<div class="loading">Loading books from CosmosDB...</div>';
+        }
+
+        async function testHelloAPI() {
+            try {
+                testHelloBtn.disabled = true;
+                testHelloBtn.textContent = 'Testing...';
+
+                const response = await fetch(`${APIM_GATEWAY_URL}/hello`, {
+                    method: 'GET',
+                    headers: {
+                        'Ocp-Apim-Subscription-Key': API_KEY,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (response.ok) {
+                    const result = await response.text();
+                    showMessage(`✅ Hello API Test Successful: ${result}`);
+                } else {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+            } catch (error) {
+                showMessage(`❌ Hello API Test Failed: ${error.message}`, 'error');
+            } finally {
+                testHelloBtn.disabled = false;
+                testHelloBtn.textContent = 'Test Hello API';
+            }
+        }
+
+        async function loadBooks() {
+            try {
+                loadBooksBtn.disabled = true;
+                refreshBtn.disabled = true;
+                loadBooksBtn.textContent = 'Loading...';
+                showLoading();
+
+                const response = await fetch(`${APIM_GATEWAY_URL}/books`, {
+                    method: 'GET',
+                    headers: {
+                        'Ocp-Apim-Subscription-Key': API_KEY,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    allBooks = data.books;
+                    updateStats(data);
+                    displayBooks();
+                    showMessage(`✅ Successfully loaded ${data.total} books from CosmosDB (Last updated: ${new Date(data.timestamp).toLocaleString()})`);
+
+                    // Show stats and filters
+                    statsArea.style.display = 'grid';
+                    filterControls.style.display = 'flex';
+                } else {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+            } catch (error) {
+                showMessage(`❌ Failed to load books: ${error.message}`, 'error');
+                booksArea.innerHTML = '';
+            } finally {
+                loadBooksBtn.disabled = false;
+                refreshBtn.disabled = false;
+                loadBooksBtn.textContent = 'Load Books';
+            }
+        }
+
+        function updateStats(data) {
+            const totalAvailable = allBooks.reduce((sum, book) => sum + book.availableCount, 0);
+            const totalBorrowed = allBooks.reduce((sum, book) => sum + book.borrowedCount, 0);
+            const categories = [...new Set(allBooks.map(book => book.category))];
+
+            document.getElementById('totalBooks').textContent = data.total;
+            document.getElementById('totalAvailable').textContent = totalAvailable;
+            document.getElementById('totalBorrowed').textContent = totalBorrowed;
+            document.getElementById('totalCategories').textContent = categories.length;
+        }
+
+        function displayBooks() {
+            const filteredBooks = currentFilter === 'all'
+                ? allBooks
+                : allBooks.filter(book => book.category === currentFilter);
+
+            if (filteredBooks.length === 0) {
+                booksArea.innerHTML = '<div class="loading">No books found for the selected filter.</div>';
+                return;
+            }
+
+            booksArea.innerHTML = filteredBooks.map(book => {
+                const availabilityClass = book.availableCount > 2 ? 'availability-high' :
+                                        book.availableCount > 0 ? 'availability-medium' : 'availability-low';
+
+                return `
+                    <div class="book-card ${availabilityClass}">
+                        <div class="book-title">${book.title}</div>
+                        <div class="book-author">by ${book.author}</div>
+                        <div class="book-meta">
+                            <span class="book-category">${book.category}</span>
+                            <span class="book-year">${book.publishedYear}</span>
+                        </div>
+                        <div class="book-description">${book.description}</div>
+                        <div class="book-stats">
+                            <div class="stat-item">
+                                <div class="number">${book.totalCount}</div>
+                                <div class="label">Total</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="number">${book.availableCount}</div>
+                                <div class="label">Available</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="number">${book.borrowedCount}</div>
+                                <div class="label">Borrowed</div>
+                            </div>
+                        </div>
+                        <div class="book-isbn">ISBN: ${book.isbn}</div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Auto-load books on page load
+        window.addEventListener('load', () => {
+            setTimeout(loadBooks, 1000);
+        });
+    </script>
+</body>
+</html>
