@@ -1,0 +1,872 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dynamic Book Library - Browse Books with Azure Integration</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        /* Header Section */
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            color: white;
+        }
+
+        .header h1 {
+            font-size: 3rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            animation: slideDown 0.5s ease-out;
+        }
+
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            animation: fadeIn 0.8s ease-out;
+        }
+
+        /* Control Panel */
+        .control-panel {
+            background: rgba(255,255,255,0.95);
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            animation: slideUp 0.6s ease-out;
+        }
+
+        .search-bar {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .search-input {
+            flex: 1;
+            padding: 12px 20px;
+            border: 2px solid #e0e0e0;
+            border-radius: 25px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102,126,234,0.1);
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* Filter Controls */
+        .filter-controls {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+
+        .filter-btn {
+            background: white;
+            border: 2px solid #e0e0e0;
+            color: #666;
+            padding: 8px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+
+        .filter-btn:hover {
+            background: #f5f5f5;
+        }
+
+        .filter-btn.active {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border-color: transparent;
+            font-weight: 600;
+        }
+
+        /* Statistics Panel */
+        .stats-panel {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+            animation: fadeIn 0.8s ease-out;
+        }
+
+        .stat-card {
+            background: rgba(255,255,255,0.95);
+            border-radius: 15px;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .stat-value {
+            display: block;
+            font-size: 2.5rem;
+            font-weight: bold;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 8px;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* Loading State */
+        .loading-state {
+            text-align: center;
+            padding: 60px;
+            background: rgba(255,255,255,0.95);
+            border-radius: 15px;
+            margin: 20px 0;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Error State */
+        .error-state {
+            background: rgba(244, 67, 54, 0.9);
+            color: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin: 20px 0;
+            text-align: center;
+        }
+
+        .error-text {
+            margin-bottom: 15px;
+            font-size: 1.1rem;
+        }
+
+        /* Books Grid */
+        .books-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 25px;
+            margin-bottom: 30px;
+            animation: fadeIn 0.8s ease-out;
+        }
+
+        /* Book Card */
+        .book-card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+            border-left: 4px solid #4CAF50;
+            animation: slideUp 0.5s ease-out;
+        }
+
+        .book-card.unavailable {
+            border-left-color: #f44336;
+            opacity: 0.85;
+        }
+
+        .book-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+        }
+
+        .book-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 15px;
+        }
+
+        .book-title {
+            font-size: 1.3rem;
+            font-weight: bold;
+            color: #2c3e50;
+            flex: 1;
+            line-height: 1.3;
+        }
+
+        .book-category {
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            white-space: nowrap;
+        }
+
+        /* Category Badges */
+        .badge-technology { background: linear-gradient(135deg, #667eea, #764ba2); }
+        .badge-business { background: linear-gradient(135deg, #f093fb, #f5576c); }
+        .badge-fiction { background: linear-gradient(135deg, #4facfe, #00f2fe); }
+        .badge-science { background: linear-gradient(135deg, #43e97b, #38f9d7); }
+        .badge-history { background: linear-gradient(135deg, #fa709a, #fee140); }
+        .badge-psychology { background: linear-gradient(135deg, #30cfd0, #330867); }
+        .badge-economics { background: linear-gradient(135deg, #a8edea, #fed6e3); }
+        .badge-philosophy { background: linear-gradient(135deg, #ff9a9e, #fecfef); }
+        .badge-spirituality { background: linear-gradient(135deg, #ffecd2, #fcb69f); }
+
+        .book-author {
+            color: #7f8c8d;
+            font-size: 1rem;
+            margin-bottom: 12px;
+            font-style: italic;
+        }
+
+        .book-description {
+            color: #555;
+            line-height: 1.5;
+            margin-bottom: 15px;
+            font-size: 0.9rem;
+            max-height: 60px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .book-meta {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+            font-size: 0.85rem;
+            color: #95a5a6;
+        }
+
+        .book-availability {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .availability-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+
+        .availability-indicator.available {
+            background: #4CAF50;
+            animation: pulse 2s infinite;
+        }
+
+        .availability-indicator.unavailable {
+            background: #f44336;
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(76, 175, 80, 0.4); }
+            70% { box-shadow: 0 0 0 10px rgba(76, 175, 80, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(76, 175, 80, 0); }
+        }
+
+        .availability-text {
+            color: #666;
+            font-weight: 500;
+        }
+
+        .book-stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .stat {
+            text-align: center;
+            padding: 8px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+
+        .stat-label {
+            display: block;
+            font-size: 0.7rem;
+            color: #7f8c8d;
+            text-transform: uppercase;
+            margin-bottom: 4px;
+        }
+
+        .stat-value {
+            font-size: 1.1rem;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+
+        .book-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .btn-borrow {
+            flex: 1;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 10px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .btn-borrow:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102,126,234,0.3);
+        }
+
+        .btn-borrow:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .btn-details {
+            flex: 1;
+            background: white;
+            color: #667eea;
+            border: 2px solid #667eea;
+            padding: 10px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .btn-details:hover {
+            background: #667eea;
+            color: white;
+        }
+
+        /* Animations */
+        @keyframes slideDown {
+            from { transform: translateY(-20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+
+            .books-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .search-bar {
+                flex-direction: column;
+            }
+
+            .filter-controls {
+                justify-content: center;
+            }
+        }
+
+        /* Success Message */
+        .success-message {
+            background: rgba(76, 175, 80, 0.9);
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 20px 0;
+            text-align: center;
+            animation: slideDown 0.3s ease-out;
+        }
+
+        .no-books {
+            text-align: center;
+            padding: 60px;
+            color: #666;
+            font-size: 1.2rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>📚 Dynamic Book Library</h1>
+            <p>Browse Books with Real-time Azure Integration</p>
+        </div>
+
+        <!-- Control Panel -->
+        <div class="control-panel">
+            <div class="search-bar">
+                <input
+                    type="text"
+                    id="searchBooks"
+                    class="search-input"
+                    placeholder="Search by title, author, or description..."
+                    onkeyup="searchBooksDebounced(this.value)"
+                >
+                <button class="btn" id="browseBooks" onclick="AzureBookLibrary.loadBooks(true)">
+                    🔄 Refresh Books
+                </button>
+                <button class="btn" onclick="testAPIConnection()">
+                    🧪 Test API
+                </button>
+            </div>
+
+            <!-- Category Filters -->
+            <div class="filter-controls" id="filterControls">
+                <button class="filter-btn active" data-category="all" onclick="AzureBookLibrary.filterByCategory('all')">
+                    All Books
+                </button>
+                <button class="filter-btn" data-category="Technology" onclick="AzureBookLibrary.filterByCategory('Technology')">
+                    Technology
+                </button>
+                <button class="filter-btn" data-category="Business" onclick="AzureBookLibrary.filterByCategory('Business')">
+                    Business
+                </button>
+                <button class="filter-btn" data-category="Fiction" onclick="AzureBookLibrary.filterByCategory('Fiction')">
+                    Fiction
+                </button>
+                <button class="filter-btn" data-category="Science" onclick="AzureBookLibrary.filterByCategory('Science')">
+                    Science
+                </button>
+                <button class="filter-btn" data-category="History" onclick="AzureBookLibrary.filterByCategory('History')">
+                    History
+                </button>
+                <button class="filter-btn" data-category="Psychology" onclick="AzureBookLibrary.filterByCategory('Psychology')">
+                    Psychology
+                </button>
+                <button class="filter-btn" data-category="Economics" onclick="AzureBookLibrary.filterByCategory('Economics')">
+                    Economics
+                </button>
+                <button class="filter-btn" data-category="Philosophy" onclick="AzureBookLibrary.filterByCategory('Philosophy')">
+                    Philosophy
+                </button>
+                <button class="filter-btn" data-category="Spirituality" onclick="AzureBookLibrary.filterByCategory('Spirituality')">
+                    Spirituality
+                </button>
+            </div>
+        </div>
+
+        <!-- Message Area -->
+        <div id="messageArea"></div>
+
+        <!-- Statistics Panel -->
+        <div id="statsPanel" class="stats-panel" style="display: none;">
+            <div class="stat-card">
+                <span class="stat-value" id="totalBooks">0</span>
+                <span class="stat-label">Total Books</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-value" id="availableBooks">0</span>
+                <span class="stat-label">Available</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-value" id="borrowedBooks">0</span>
+                <span class="stat-label">Borrowed</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-value" id="totalCategories">0</span>
+                <span class="stat-label">Categories</span>
+            </div>
+        </div>
+
+        <!-- Dynamic Books Section -->
+        <div id="dynamicBooksSection">
+            <!-- Loading State -->
+            <div id="loadingIndicator" class="loading-state" style="display: none;">
+                <div class="spinner"></div>
+                <p>Loading books from Azure CosmosDB...</p>
+            </div>
+
+            <!-- Error State -->
+            <div id="errorMessage" class="error-state" style="display: none;">
+                <p class="error-text"></p>
+                <button class="btn" onclick="AzureBookLibrary.loadBooks(true)">Retry</button>
+            </div>
+
+            <!-- Books Container -->
+            <div id="booksContainer" class="books-grid" style="display: none;">
+                <!-- Dynamic books will be inserted here -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Azure Integration Module
+        const AzureBookLibrary = {
+            // Configuration
+            config: {
+                apiUrl: 'https://book-system-apim.azure-api.net/books',
+                apiKey: '6854c6a9b0ff4b449f50b06f3e3b8d5e',
+                retryAttempts: 3,
+                cacheTimeout: 300000 // 5 minutes
+            },
+
+            // Cache management
+            cache: {
+                books: null,
+                timestamp: null
+            },
+
+            // Initialize the library
+            init: function() {
+                console.log('🚀 Initializing Azure Book Library...');
+                this.loadBooks();
+            },
+
+            // Load books from Azure
+            async loadBooks(forceRefresh = false) {
+                try {
+                    // Check cache
+                    if (!forceRefresh && this.isCacheValid()) {
+                        console.log('📦 Loading from cache...');
+                        this.displayBooks(this.cache.books);
+                        return;
+                    }
+
+                    // Show loading state
+                    this.showLoading();
+
+                    console.log('🔄 Fetching books from Azure...');
+
+                    // Fetch from APIM Gateway
+                    const response = await fetch(`${this.config.apiUrl}/books`, {
+                        method: 'GET',
+                        headers: {
+                            'Ocp-Apim-Subscription-Key': this.config.apiKey,
+                            'Content-Type': 'application/json'
+                        }
+                    });
+
+                    if (!response.ok) {
+                        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                    }
+
+                    const data = await response.json();
+                    console.log(`✅ Loaded ${data.books.length} books from CosmosDB`);
+
+                    // Update cache
+                    this.cache.books = data.books;
+                    this.cache.timestamp = Date.now();
+
+                    // Display books
+                    this.displayBooks(data.books);
+                    this.updateStatistics(data.books);
+                    this.showSuccess(`Successfully loaded ${data.books.length} books from Azure CosmosDB`);
+
+                } catch (error) {
+                    console.error('❌ Failed to load books:', error);
+                    this.showError(`Failed to load books: ${error.message}`);
+                }
+            },
+
+            // Display books in grid
+            displayBooks: function(books) {
+                const container = document.getElementById('booksContainer');
+
+                if (!books || books.length === 0) {
+                    container.innerHTML = '<p class="no-books">No books found</p>';
+                    this.hideLoading();
+                    container.style.display = 'block';
+                    return;
+                }
+
+                // Generate HTML for each book
+                const booksHTML = books.map(book => this.createBookCard(book)).join('');
+                container.innerHTML = booksHTML;
+
+                // Show container and hide loading
+                this.hideLoading();
+                container.style.display = 'grid';
+            },
+
+            // Create individual book card
+            createBookCard: function(book) {
+                const availabilityClass = book.availableCount > 0 ? 'available' : 'unavailable';
+                const availabilityText = book.availableCount > 0
+                    ? `${book.availableCount} available`
+                    : 'Currently unavailable';
+
+                return `
+                    <div class="book-card ${availabilityClass}" data-book-id="${book.id}">
+                        <div class="book-header">
+                            <h3 class="book-title">${book.title}</h3>
+                            <span class="book-category badge-${book.category.toLowerCase()}">${book.category}</span>
+                        </div>
+
+                        <p class="book-author">by ${book.author}</p>
+                        <p class="book-description">${book.description}</p>
+
+                        <div class="book-meta">
+                            <span class="book-year">Published: ${book.publishedYear}</span>
+                            <span class="book-isbn">ISBN: ${book.isbn}</span>
+                        </div>
+
+                        <div class="book-availability">
+                            <div class="availability-indicator ${availabilityClass}"></div>
+                            <span class="availability-text">${availabilityText}</span>
+                        </div>
+
+                        <div class="book-stats">
+                            <div class="stat">
+                                <span class="stat-label">Total</span>
+                                <span class="stat-value">${book.totalCount}</span>
+                            </div>
+                            <div class="stat">
+                                <span class="stat-label">Available</span>
+                                <span class="stat-value">${book.availableCount}</span>
+                            </div>
+                            <div class="stat">
+                                <span class="stat-label">Borrowed</span>
+                                <span class="stat-value">${book.borrowedCount}</span>
+                            </div>
+                        </div>
+
+                        <div class="book-actions">
+                            <button class="btn-borrow"
+                                    onclick="AzureBookLibrary.borrowBook('${book.id}')"
+                                    ${book.availableCount === 0 ? 'disabled' : ''}>
+                                ${book.availableCount > 0 ? 'Borrow Book' : 'Join Waitlist'}
+                            </button>
+                            <button class="btn-details" onclick="AzureBookLibrary.showBookDetails('${book.id}')">
+                                View Details
+                            </button>
+                        </div>
+                    </div>
+                `;
+            },
+
+            // Search books
+            searchBooks: function(query) {
+                if (!this.cache.books) {
+                    this.loadBooks();
+                    return;
+                }
+
+                const filtered = query.trim() === ''
+                    ? this.cache.books
+                    : this.cache.books.filter(book =>
+                        book.title.toLowerCase().includes(query.toLowerCase()) ||
+                        book.author.toLowerCase().includes(query.toLowerCase()) ||
+                        book.description.toLowerCase().includes(query.toLowerCase())
+                    );
+
+                console.log(`🔍 Search results: ${filtered.length} books found`);
+                this.displayBooks(filtered);
+                this.updateStatistics(filtered);
+            },
+
+            // Filter by category
+            filterByCategory: function(category) {
+                if (!this.cache.books) {
+                    this.loadBooks();
+                    return;
+                }
+
+                const filtered = category === 'all'
+                    ? this.cache.books
+                    : this.cache.books.filter(book => book.category === category);
+
+                console.log(`📚 Filtering by ${category}: ${filtered.length} books`);
+                this.displayBooks(filtered);
+                this.updateStatistics(filtered);
+
+                // Update active filter button
+                document.querySelectorAll('.filter-btn').forEach(btn => {
+                    btn.classList.toggle('active', btn.dataset.category === category);
+                });
+            },
+
+            // Update statistics
+            updateStatistics: function(books) {
+                const categories = [...new Set(books.map(b => b.category))];
+                const stats = {
+                    total: books.length,
+                    available: books.reduce((sum, book) => sum + book.availableCount, 0),
+                    borrowed: books.reduce((sum, book) => sum + book.borrowedCount, 0),
+                    categories: categories.length
+                };
+
+                document.getElementById('totalBooks').textContent = stats.total;
+                document.getElementById('availableBooks').textContent = stats.available;
+                document.getElementById('borrowedBooks').textContent = stats.borrowed;
+                document.getElementById('totalCategories').textContent = stats.categories;
+                document.getElementById('statsPanel').style.display = 'grid';
+            },
+
+            // Borrow book (placeholder for future implementation)
+            async borrowBook(bookId) {
+                const book = this.cache.books.find(b => b.id === bookId);
+                this.showSuccess(`Borrowing feature coming soon! Selected: "${book.title}"`);
+            },
+
+            // Show book details (placeholder for future implementation)
+            showBookDetails(bookId) {
+                const book = this.cache.books.find(b => b.id === bookId);
+                alert(`📖 ${book.title}\n\n` +
+                      `Author: ${book.author}\n` +
+                      `Category: ${book.category}\n` +
+                      `Year: ${book.publishedYear}\n` +
+                      `ISBN: ${book.isbn}\n\n` +
+                      `${book.description}\n\n` +
+                      `Available: ${book.availableCount}/${book.totalCount}`);
+            },
+
+            // Utility functions
+            showLoading: function() {
+                document.getElementById('loadingIndicator').style.display = 'block';
+                document.getElementById('booksContainer').style.display = 'none';
+                document.getElementById('errorMessage').style.display = 'none';
+                this.hideMessage();
+            },
+
+            hideLoading: function() {
+                document.getElementById('loadingIndicator').style.display = 'none';
+            },
+
+            showError: function(message) {
+                document.getElementById('errorMessage').style.display = 'block';
+                document.querySelector('#errorMessage .error-text').textContent = message;
+                this.hideLoading();
+            },
+
+            showSuccess: function(message) {
+                const messageArea = document.getElementById('messageArea');
+                messageArea.innerHTML = `<div class="success-message">${message}</div>`;
+                setTimeout(() => this.hideMessage(), 5000);
+            },
+
+            hideMessage: function() {
+                document.getElementById('messageArea').innerHTML = '';
+            },
+
+            isCacheValid: function() {
+                return this.cache.books &&
+                       this.cache.timestamp &&
+                       (Date.now() - this.cache.timestamp < this.config.cacheTimeout);
+            }
+        };
+
+        // Debounced search for better performance
+        let searchTimeout;
+        function searchBooksDebounced(query) {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => {
+                AzureBookLibrary.searchBooks(query);
+            }, 300);
+        }
+
+        // Test API connection
+        async function testAPIConnection() {
+            try {
+                console.log('🧪 Testing API connection...');
+                const response = await fetch('https://book-system-apim.azure-api.net/books/hello', {
+                    headers: {
+                        'Ocp-Apim-Subscription-Key': '6854c6a9b0ff4b449f50b06f3e3b8d5e'
+                    }
+                });
+                const result = await response.text();
+                if (response.ok) {
+                    AzureBookLibrary.showSuccess(`✅ API Test Successful: ${result}`);
+                } else {
+                    AzureBookLibrary.showError(`API Test Failed: ${response.status}`);
+                }
+            } catch (error) {
+                AzureBookLibrary.showError(`API Test Failed: ${error.message}`);
+            }
+        }
+
+        // Debug function to check data
+        function debugBookData() {
+            if (AzureBookLibrary.cache.books) {
+                console.table(AzureBookLibrary.cache.books);
+                console.log('Total books:', AzureBookLibrary.cache.books.length);
+                console.log('Categories:', [...new Set(AzureBookLibrary.cache.books.map(b => b.category))]);
+            } else {
+                console.log('No books loaded yet');
+            }
+        }
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('📚 Dynamic Book Library - Starting...');
+            console.log('🔗 API Gateway:', AzureBookLibrary.config.apiUrl);
+            AzureBookLibrary.init();
+        });
+    </script>
+</body>
+</html>
