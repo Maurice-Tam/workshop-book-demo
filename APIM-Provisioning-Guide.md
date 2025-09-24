@@ -51,51 +51,15 @@ Protocol: HTTPS
 
 ### Operations
 
-#### 1. Hello World Endpoint
+#### Hello World Endpoint
 ```yaml
 Operation: GET /hello
 Display Name: Hello World
 Description: Basic health check and greeting endpoint
 Backend: helloworldfunc-backend/hello
-```
-
-#### 2. List Books
-```yaml
-Operation: GET /list
-Display Name: List All Books
-Description: Retrieve all available books
-Backend: helloworldfunc-backend/books/list
-```
-
-#### 3. Borrow Book
-```yaml
-Operation: POST /borrow
-Display Name: Borrow Book
-Description: Borrow a book from the library
-Backend: helloworldfunc-backend/books/borrow
-Request Body:
-  - bookId (integer)
-  - userId (string)
-```
-
-#### 4. Return Book
-```yaml
-Operation: POST /return
-Display Name: Return Book
-Description: Return a borrowed book
-Backend: helloworldfunc-backend/books/return
-Request Body:
-  - borrowId (integer)
-```
-
-#### 5. Get Borrowed Books
-```yaml
-Operation: GET /borrowed
-Display Name: Get Borrowed Books
-Description: Get user's currently borrowed books
-Backend: helloworldfunc-backend/user/borrowed
 Query Parameters:
-  - userId (string, optional)
+  - name (string, optional): Name for personalized greeting
+Response: Plain text greeting message
 ```
 
 ---
@@ -293,7 +257,7 @@ az apim api create \
   --display-name "Book Borrowing System API" \
   --protocols https
 
-# Create operations
+# Create hello world operation
 az apim api operation create \
   --resource-group $RESOURCE_GROUP \
   --service-name $APIM_NAME \
@@ -389,8 +353,9 @@ graph TD
 # Check APIM service status
 az apim show --resource-group dev-swa-rg --name book-system-apim
 
-# Test API endpoint
+# Test Hello World API endpoint
 curl -X GET "https://book-system-apim.azure-api.net/books/hello"
+curl -X GET "https://book-system-apim.azure-api.net/books/hello?name=YourName"
 
 # View logs
 az monitor activity-log list --resource-group dev-swa-rg
